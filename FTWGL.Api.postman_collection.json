@@ -1,0 +1,90 @@
+{
+	"id": "cad752a3-9b77-915a-3412-acbeb897b2fb",
+	"name": "FTWGL.Api",
+	"description": "",
+	"order": [
+		"52a656a7-63e3-2e53-6d0a-b30935771652",
+		"dd05daaf-f76c-06c7-e9e9-a8440c778813"
+	],
+	"folders": [],
+	"timestamp": 1489550087943,
+	"owner": "534395",
+	"public": false,
+	"requests": [
+		{
+			"id": "52a656a7-63e3-2e53-6d0a-b30935771652",
+			"headers": "Content-Type: application/x-www-form-urlencoded\n",
+			"url": "http://localhost:5000/connect/token",
+			"preRequestScript": null,
+			"pathVariables": {},
+			"method": "POST",
+			"data": [
+				{
+					"key": "grant_type",
+					"value": "password",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "test123",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "username",
+					"value": "kmerecido@gmail.com",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"dataMode": "urlencoded",
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1489550201192,
+			"name": "Get token",
+			"description": "",
+			"collectionId": "cad752a3-9b77-915a-3412-acbeb897b2fb"
+		},
+		{
+			"id": "dd05daaf-f76c-06c7-e9e9-a8440c778813",
+			"name": "Test Authentication",
+			"dataMode": "urlencoded",
+			"data": [
+				{
+					"key": "grant_type",
+					"value": "password",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "tester123",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "username",
+					"value": "kmerecido@gmail.com",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"rawModeData": null,
+			"descriptionFormat": "html",
+			"description": "",
+			"headers": "Content-Type: bearer CfDJ8PmQbovE65hCkJMeZPZvASKeX8njwbTZjG9C-2p53MEgQjx5vr6LL0G6bf6JSQvF8L67pjfPU7yKmlhg--kjU25RN1bQOjb_4aMBVQ0CHJ89XIw9Pwwak-hVa5P4-INls6sbyLv_BzineNHSVdiMojyCgPA_hm4CrdpR1N48_4G7mJtM3gs9WgDiaLXa1JhPR5pIHv3nJLuTVqjoKP7GHEMmpynXMjrgqic0Vf7DM05Pwq_0MfGaNm7A2gddYLKLtot_Yeo4iYro0QBBL7M-Z5K274LJAjCCneovg_mKdNTVZUxppY5ZmmUFXCOlt4cvibfkdm1y_jP1Bks5yEsrh0tWNseIR2s1YW58A8wQ4uICdcbahroqx_Tu3dmx5gL3sEITNh9RoVPqYjUXrZ6a-CrNf07meUSL1ELuLllNBw8PM1O2YWpQJhYYhLCs41ZsXNu0-om1jcAgKjmLrCbcfwJfijmz6BWIeOi5h54BGxWfRMqiwfs3DdamOsHIGk-6gD1zaYQQ29YTl66tfRe3ei3pvuBUzTGCN6OH4PbyVw-N8Gs17ix6dePcjyg-O037qksSAy38zhtGOdzDLU3x_iJpEDcGzjOAdJmMMCC5jDTqvZCEMhkmGIkI27g_bDQhlMIKaf9GtJ9g6GJStrZt1kB91UkPxlinoR1IX5VqwOsoOhGdcNURWxvYrcBXWHF8PsPtNtb5PULfSacODxcz1sHKhcYi8x9FurRL5hdzBIKbSQ5dMLCBORnPJzCaMpbXWKfJ7TnuZ2nKNDqkozh4-4uk-u2UQZSl745JDYF1S9Wu8CfD1sHLQMaO89H2pyrruw\n",
+			"method": "GET",
+			"pathVariables": {},
+			"url": "http://localhost:8080/test/message",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": [],
+			"collectionId": "cad752a3-9b77-915a-3412-acbeb897b2fb",
+			"isFromCollection": true,
+			"collectionRequestId": "2f032fd9-f4c1-a946-cd25-8532dc8f6f3c"
+		}
+	]
+}
