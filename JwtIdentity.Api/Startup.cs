@@ -200,22 +200,22 @@ namespace JwtIdentity.Api
                     "User",
                     new List<Claim>
                     {
-                        new Claim(FtwglClaimsType.Permission, "profile.view"),
-                        new Claim(FtwglClaimsType.Permission, "profile.update"),
-                        new Claim(FtwglClaimsType.Permission, "event.view"),
-                        new Claim(FtwglClaimsType.Permission, "event.signup"),
+                        new Claim(CustomClaimsType.Permission, "profile.view"),
+                        new Claim(CustomClaimsType.Permission, "profile.update"),
+                        new Claim(CustomClaimsType.Permission, "event.view"),
+                        new Claim(CustomClaimsType.Permission, "event.signup"),
                     }
                 },  
                 {
                     "Administrator",   
                     new List<Claim>
                     {
-                        new Claim(FtwglClaimsType.Permission, "profile.view"),
-                        new Claim(FtwglClaimsType.Permission, "profile.update"),
-                        new Claim(FtwglClaimsType.Permission, "event.view"),
-                        new Claim(FtwglClaimsType.Permission, "event.signup"),
-                        new Claim(FtwglClaimsType.Permission, "event.update"),
-                        new Claim(FtwglClaimsType.Permission, "event.delete")
+                        new Claim(CustomClaimsType.Permission, "profile.view"),
+                        new Claim(CustomClaimsType.Permission, "profile.update"),
+                        new Claim(CustomClaimsType.Permission, "event.view"),
+                        new Claim(CustomClaimsType.Permission, "event.signup"),
+                        new Claim(CustomClaimsType.Permission, "event.update"),
+                        new Claim(CustomClaimsType.Permission, "event.delete")
                     }
                 }
                 
@@ -238,7 +238,7 @@ namespace JwtIdentity.Api
                     var roleClaims = role.Value;
                     
                     // delete claims that no longer exists
-                    var claimsToDelete = dbRole.Claims.Where(x => x.ClaimType.Equals(FtwglClaimsType.Permission) && !roleClaims.Select(rc => rc.Value).Contains(x.ClaimValue)).ToList();
+                    var claimsToDelete = dbRole.Claims.Where(x => x.ClaimType.Equals(CustomClaimsType.Permission) && !roleClaims.Select(rc => rc.Value).Contains(x.ClaimValue)).ToList();
                     foreach (var identityRoleClaim in claimsToDelete)
                     {
                         await roleManager.RemoveClaimAsync(dbRole, identityRoleClaim.ToClaim());
@@ -248,7 +248,7 @@ namespace JwtIdentity.Api
                     var claimsToAdd = roleClaims
                                         .Where(rc => 
                                             !dbRole.Claims
-                                                    .Where(dbc => dbc.ClaimType.Equals(FtwglClaimsType.Permission))
+                                                    .Where(dbc => dbc.ClaimType.Equals(CustomClaimsType.Permission))
                                                     .Select(dbc => dbc.ClaimValue)
                                                     .Contains(rc.Value)
                                         );
