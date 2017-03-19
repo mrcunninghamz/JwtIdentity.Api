@@ -10,4 +10,6 @@ Integration Steps:
 - Add your user in line 158
 - open Package Manager Console
 - type: Update-Database
-- use the attached postman collection to hit api
+- run the application, should view swagger ui
+- use the attached postman collection to hit api to get token
+- in swagger where Authorization field is required enter "bearer [token from auth api endpoint]"
