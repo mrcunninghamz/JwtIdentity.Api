@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using JwtIdentity.Api.Data;
+using JwtIdentity.Api.Data.Entities;
 using JwtIdentity.Api.Models;
 using JwtIdentity.Api.Services;
 using Microsoft.AspNetCore.Builder;
@@ -13,6 +17,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace JwtIdentity.Api
 {
@@ -41,6 +49,9 @@ namespace JwtIdentity.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+
+            // Add our Config object so it can be injected
+            services.Configure<Settings>(Configuration.GetSection("Settings"));
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -96,13 +107,32 @@ namespace JwtIdentity.Api
                 options.AddEphemeralSigningKey();
             });
 
+            // Add Swagger
+            services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new Info
+                {
+                    Title = "JwtIdentity API",
+                    Version = "v1",
+                    Description = "This is the boilerplate API. \n\n" +
+                                  "To get a token use Postman to send an x-www-form-urlencoded POST to '/connect/token' with grant_type = 'password', username, and password.",
+                    TermsOfService = "NA"
+                });
+
+                options.OperationFilter<AuthorizationHeaderParameterOperationFilter>();
+
+                // include documentation from XML
+                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "JwtIdentity.Api.xml");
+                options.IncludeXmlComments(filePath);
+            });
+
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, IOptions<Settings> settings)
         {
             Task.Run(() => InitializeUsers(roleManager, userManager)).Wait();
 
@@ -122,10 +152,26 @@ namespace JwtIdentity.Api
 
             app.UseStaticFiles();
 
-            app.UseIdentity();
-
             app.UseOAuthValidation();
-            
+
+            // If you prefer using JWT, don't forget to disable the automatic
+            // JWT -> WS-Federation claims mapping used by the JWT middleware:
+
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+
+            app.UseJwtBearerAuthentication(new JwtBearerOptions
+            {
+                Authority = settings.Value.Authority,
+                Audience = "resource-server",
+                RequireHttpsMetadata = false,
+                TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = OpenIdConnectConstants.Claims.Subject,
+                    RoleClaimType = OpenIdConnectConstants.Claims.Role
+                }
+            });
+
             app.UseOpenIddict();
 
             app.UseMvc(routes =>
@@ -134,23 +180,87 @@ namespace JwtIdentity.Api
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "JwtIdentity API");
+            });
         }
 
         // Initialize some test roles. In the real world, these would be setup explicitly by a role manager
+        // Role claims: http://benfoster.io/blog/asp-net-identity-role-claims
+        // TODO: move to some other class
         private async Task InitializeUsers(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
-            var roles = new[] { "User", "Administrator" };
+            var roles = new Dictionary<string, IEnumerable<Claim>>
+            {
+                {
+                    "User",
+                    new List<Claim>
+                    {
+                        new Claim(FtwglClaimsType.Permission, "profile.view"),
+                        new Claim(FtwglClaimsType.Permission, "profile.update"),
+                        new Claim(FtwglClaimsType.Permission, "event.view"),
+                        new Claim(FtwglClaimsType.Permission, "event.signup"),
+                    }
+                },  
+                {
+                    "Administrator",   
+                    new List<Claim>
+                    {
+                        new Claim(FtwglClaimsType.Permission, "profile.view"),
+                        new Claim(FtwglClaimsType.Permission, "profile.update"),
+                        new Claim(FtwglClaimsType.Permission, "event.view"),
+                        new Claim(FtwglClaimsType.Permission, "event.signup"),
+                        new Claim(FtwglClaimsType.Permission, "event.update"),
+                        new Claim(FtwglClaimsType.Permission, "event.delete")
+                    }
+                }
+                
+            };
             foreach (var role in roles)
             {
-                if (!await roleManager.RoleExistsAsync(role))
+                if (!await roleManager.RoleExistsAsync(role.Key))
                 {
-                    var newRole = new IdentityRole(role);
+                    var newRole = new IdentityRole(role.Key);
                     await roleManager.CreateAsync(newRole);
-                    // In the real world, there might be claims associated with roles
-                    // _roleManager.AddClaimAsync(newRole, new )
+
+                    foreach (var claim in role.Value)
+                    {
+                        await roleManager.AddClaimAsync(newRole, claim);
+                    }
+                }
+                else
+                {
+                    var dbRole = roleManager.Roles.Include(x => x.Claims).First(x => x.Name.Equals(role.Key));
+                    var roleClaims = role.Value;
+                    
+                    // delete claims that no longer exists
+                    var claimsToDelete = dbRole.Claims.Where(x => x.ClaimType.Equals(FtwglClaimsType.Permission) && !roleClaims.Select(rc => rc.Value).Contains(x.ClaimValue)).ToList();
+                    foreach (var identityRoleClaim in claimsToDelete)
+                    {
+                        await roleManager.RemoveClaimAsync(dbRole, identityRoleClaim.ToClaim());
+                    }
+
+                    // add new claims
+                    var claimsToAdd = roleClaims
+                                        .Where(rc => 
+                                            !dbRole.Claims
+                                                    .Where(dbc => dbc.ClaimType.Equals(FtwglClaimsType.Permission))
+                                                    .Select(dbc => dbc.ClaimValue)
+                                                    .Contains(rc.Value)
+                                        );
+
+                    foreach (var identityRoleClaim in claimsToAdd)
+                    {
+                        await roleManager.AddClaimAsync(dbRole, identityRoleClaim);
+                    }
                 }
             }
-            
+
+            // NOTE: Every seeded user is an administrator
             var users = new List<ApplicationUser>
             {
                 new ApplicationUser {UserName = "kmerecido@gmail.com"}

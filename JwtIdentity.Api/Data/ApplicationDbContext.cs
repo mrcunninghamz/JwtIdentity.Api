@@ -1,4 +1,4 @@
-﻿using JwtIdentity.Api.Models;
+﻿using JwtIdentity.Api.Data.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

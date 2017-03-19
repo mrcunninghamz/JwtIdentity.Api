@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using JwtIdentity.Api.Models;
+using JwtIdentity.Api.Data.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -16,6 +16,7 @@ using OpenIddict.Core;
 
 namespace JwtIdentity.Api.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class AuthorizationController : Controller
     {
         private readonly IOptions<IdentityOptions> _identityOptions;
