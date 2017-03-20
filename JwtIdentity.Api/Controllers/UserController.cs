@@ -19,12 +19,12 @@ namespace JwtIdentity.Api.Controllers
 
         [HttpGet]
         [Route("Current")]
-        [Authorize]
+        [Authorize("View Profiles")]
         [Produces("application/json")]
         public async Task<IActionResult> GetUserInformation()
         {
-            var user = _userManager.Users.Include(x => x.Claims).Include(x => x.Roles).FirstOrDefault(x => x.Id == HttpContext.User.Identity.Name);
-            return Ok(user);
+            var claims = User.Claims.Select(claim => new { claim.Type, claim.Value }).ToArray();
+            return Json(claims);
         }
     }
 }

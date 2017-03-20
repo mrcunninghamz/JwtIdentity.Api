@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
+using ForTheWinGamingLeague.Api.Models;
 using JwtIdentity.Api.Data;
 using JwtIdentity.Api.Data.Entities;
 using JwtIdentity.Api.Models;
@@ -107,6 +108,8 @@ namespace JwtIdentity.Api
                 options.AddEphemeralSigningKey();
             });
 
+            services.AddApplicationPolicies();
+            
             // Add Swagger
             services.AddSwaggerGen(options =>
             {
