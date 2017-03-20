@@ -16,3 +16,4 @@ Integration Steps:
 - run the application, should view swagger ui
 - use the attached postman collection to hit api to get token
 - in swagger where Authorization field is required enter "bearer [token from auth api endpoint]"
+- if you remove profile.view from the administrator role, you will notice that your user is unable to authorize through authorized attributes with "View Profiles".
